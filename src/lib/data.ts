@@ -520,7 +520,12 @@ export function getCareer(slug: string) {
   return careers.find((c) => c.slug === slug);
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+function resolveApiBaseUrl(value?: string) {
+  const baseUrl = (value || "http://localhost:5000/api").replace(/\/+$/, "");
+  return baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+}
+
+const API_BASE_URL = resolveApiBaseUrl(process.env.NEXT_PUBLIC_API_URL);
 
 async function fetchCollection<T>(path: string, key: string, fallback: T[]): Promise<T[]> {
   try {
