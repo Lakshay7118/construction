@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { services } from "@/lib/data";
-import SectionHeading from "@/components/SectionHeading";
+import { listServices } from "@/lib/data";
 
 export const metadata = { title: "Services | Kalpataru Constructions" };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await listServices();
   return (
     <>
       <section className="bg-charcoal text-concrete blueprint-grid py-20">

@@ -1,5 +1,5 @@
 import SectionHeading from "@/components/SectionHeading";
-import { awards } from "@/lib/data";
+import { listAwards } from "@/lib/data";
 
 const goals = [
   "Improve brand recognition and industry standing",
@@ -27,7 +27,8 @@ const personas = [
   },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const awards = await listAwards();
   return (
     <>
       <section className="bg-charcoal text-concrete blueprint-grid py-20">

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { blogs, getBlog } from "@/lib/data";
+import { blogs, findBlog } from "@/lib/data";
 
 export function generateStaticParams() {
   return blogs.map((b) => ({ slug: b.slug }));
@@ -9,7 +9,7 @@ export function generateStaticParams() {
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const blog = getBlog(slug);
+  const blog = await findBlog(slug);
   if (!blog) notFound();
 
   return (

@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin } from "lucide-react";
-import { careers, getCareer } from "@/lib/data";
+import { careers, findCareer } from "@/lib/data";
 import JobApplicationForm from "@/components/JobApplicationForm";
 
 export function generateStaticParams() {
@@ -10,7 +10,7 @@ export function generateStaticParams() {
 
 export default async function CareerDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const job = getCareer(slug);
+  const job = await findCareer(slug);
   if (!job) notFound();
 
   return (
@@ -39,7 +39,7 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ s
 
       <div className="mt-14 border-t border-charcoal/10 pt-10">
         <h3 className="font-display text-2xl mb-6">Apply for this position</h3>
-        <JobApplicationForm />
+        <JobApplicationForm careerSlug={slug} />
       </div>
     </section>
   );

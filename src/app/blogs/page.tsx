@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { blogs } from "@/lib/data";
+import { listBlogs } from "@/lib/data";
 
 export const metadata = { title: "Journal | Kalpataru Constructions" };
 
-export default function BlogsPage() {
+export default async function BlogsPage() {
+  const blogs = await listBlogs();
   return (
     <>
       <section className="bg-charcoal text-concrete blueprint-grid py-20">

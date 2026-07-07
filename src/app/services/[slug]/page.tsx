@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight, Check } from "lucide-react";
-import { services, projects, getService } from "@/lib/data";
+import { services, findService, listProjects } from "@/lib/data";
 import ProjectCard from "@/components/ProjectCard";
 import SectionHeading from "@/components/SectionHeading";
 
@@ -11,7 +11,7 @@ export function generateStaticParams() {
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const service = getService(slug);
+  const [service, projects] = await Promise.all([findService(slug), listProjects()]);
   if (!service) notFound();
 
   const relatedProjects = projects.filter((p) => p.type === service.name).slice(0, 3);

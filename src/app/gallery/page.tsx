@@ -1,9 +1,10 @@
-import { projects } from "@/lib/data";
+import { listProjects } from "@/lib/data";
 import Link from "next/link";
 
 export const metadata = { title: "Gallery | Kalpataru Constructions" };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const projects = await listProjects();
   const allImages = projects.flatMap((p) =>
     p.gallery.map((g) => ({ ...g, project: p }))
   );

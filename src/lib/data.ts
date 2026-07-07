@@ -519,3 +519,215 @@ export function getBlog(slug: string) {
 export function getCareer(slug: string) {
   return careers.find((c) => c.slug === slug);
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+async function fetchCollection<T>(path: string, key: string, fallback: T[]): Promise<T[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, { next: { revalidate: 60 } });
+    if (!response.ok) return fallback;
+    const data = await response.json();
+    return data?.[key] ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function listCities() {
+  const fetched = await fetchCollection<Partial<City>>("/cities", "cities", cities);
+  const fallbackBySlug = new Map(cities.map((city) => [city.slug, city]));
+
+  return fetched
+    .filter((city): city is Partial<City> & { slug: string; name: string } => Boolean(city.slug && city.name))
+    .map((city) => ({
+      ...(fallbackBySlug.get(city.slug) ?? {
+        state: "",
+        coverImage: "",
+        description: "",
+        totalSqft: 0,
+      }),
+      ...city,
+      state: city.state ?? "",
+      coverImage: city.coverImage ?? "",
+      description: city.description ?? "",
+      totalSqft: Number(city.totalSqft ?? 0),
+    }));
+}
+
+export async function listProjects() {
+  const fetched = await fetchCollection<Partial<Project>>("/projects", "projects", projects);
+  const fallbackBySlug = new Map(projects.map((project) => [project.slug, project]));
+
+  return fetched
+    .filter((project): project is Partial<Project> & { slug: string; title: string } => Boolean(project.slug && project.title))
+    .map((project) => ({
+      ...(fallbackBySlug.get(project.slug) ?? {
+        citySlug: "",
+        type: "Residential" as ProjectType,
+        status: "ongoing" as ProjectStatus,
+        heroImage: "",
+        description: "",
+        scopeOfWork: "",
+        materials: [],
+        sqft: 0,
+        client: "",
+        year: "",
+        gallery: [],
+        timeline: [],
+      }),
+      ...project,
+      citySlug: project.citySlug ?? "",
+      type: project.type ?? "Residential",
+      status: project.status ?? "ongoing",
+      heroImage: project.heroImage ?? "",
+      description: project.description ?? "",
+      scopeOfWork: project.scopeOfWork ?? "",
+      materials: Array.isArray(project.materials) ? project.materials : [],
+      sqft: Number(project.sqft ?? 0),
+      client: project.client ?? "",
+      year: project.year ?? "",
+      gallery: Array.isArray(project.gallery) ? project.gallery : [],
+      beforeAfter: Array.isArray(project.beforeAfter) ? project.beforeAfter : [],
+      timeline: Array.isArray(project.timeline) ? project.timeline : [],
+    }));
+}
+
+export async function listServices() {
+  const fetched = await fetchCollection<Partial<Service>>("/services", "services", services);
+  const fallbackBySlug = new Map(services.map((service) => [service.slug, service]));
+
+  return fetched
+    .filter((service): service is Partial<Service> & { slug: string; name: string } => Boolean(service.slug && service.name))
+    .map((service) => ({
+      ...(fallbackBySlug.get(service.slug) ?? {
+        tagline: "",
+        description: "",
+        capabilities: [],
+        image: "",
+      }),
+      ...service,
+      tagline: service.tagline ?? "",
+      description: service.description ?? "",
+      capabilities: Array.isArray(service.capabilities) ? service.capabilities : [],
+      image: service.image ?? "",
+    }));
+}
+
+export async function listBlogs() {
+  const fetched = await fetchCollection<(Partial<Blog> & { createdAt?: string })>("/blogs", "blogs", blogs);
+  const fallbackBySlug = new Map(blogs.map((blog) => [blog.slug, blog]));
+
+  return fetched
+    .filter((blog): blog is Partial<Blog> & { createdAt?: string; slug: string; title: string } => Boolean(blog.slug && blog.title))
+    .map((blog) => ({
+      ...(fallbackBySlug.get(blog.slug) ?? {
+        excerpt: "",
+        content: [],
+        coverImage: "",
+        author: "Editorial Team",
+        date: blog.createdAt ?? new Date().toISOString(),
+        category: "Journal",
+      }),
+      ...blog,
+      excerpt: blog.excerpt ?? "",
+      content: Array.isArray(blog.content) ? blog.content : [],
+      coverImage: blog.coverImage ?? "",
+      author: blog.author ?? "Editorial Team",
+      date: blog.date ?? blog.createdAt ?? new Date().toISOString(),
+      category: blog.category ?? "Journal",
+    }));
+}
+
+export async function listCareers() {
+  const fetched = await fetchCollection<Partial<CareerPost>>("/careers", "careers", careers);
+  const fallbackBySlug = new Map(careers.map((career) => [career.slug, career]));
+
+  return fetched
+    .filter((career): career is Partial<CareerPost> & { slug: string; title: string } => Boolean(career.slug && career.title))
+    .map((career) => ({
+      ...(fallbackBySlug.get(career.slug) ?? {
+        location: "",
+        type: "Full-time",
+        description: "",
+        responsibilities: [],
+      }),
+      ...career,
+      location: career.location ?? "",
+      type: career.type ?? "Full-time",
+      description: career.description ?? "",
+      responsibilities: Array.isArray(career.responsibilities) ? career.responsibilities : [],
+    }));
+}
+
+export async function listTestimonials() {
+  const fetched = await fetchCollection<Partial<Testimonial>>("/testimonials", "testimonials", testimonials);
+
+  return fetched
+    .filter((testimonial): testimonial is Partial<Testimonial> & { name: string } => Boolean(testimonial.name))
+    .map((testimonial) => ({
+      name: testimonial.name,
+      role: testimonial.role ?? "",
+      message: testimonial.message ?? "",
+      rating: Number(testimonial.rating ?? 5),
+    }));
+}
+
+export async function listAwards() {
+  const fetched = await fetchCollection<Partial<Award>>("/awards", "awards", awards);
+
+  return fetched
+    .filter((award): award is Partial<Award> & { title: string } => Boolean(award.title))
+    .map((award) => ({
+      year: award.year ?? "",
+      title: award.title,
+      issuer: award.issuer ?? "",
+    }));
+}
+
+export async function getPublicData() {
+  const [cityList, projectList, serviceList, testimonialList, awardList] = await Promise.all([
+    listCities(),
+    listProjects(),
+    listServices(),
+    listTestimonials(),
+    listAwards(),
+  ]);
+
+  return {
+    cities: cityList,
+    projects: projectList,
+    services: serviceList,
+    testimonials: testimonialList,
+    awards: awardList,
+  };
+}
+
+export async function findCity(slug: string) {
+  const cityList = await listCities();
+  return cityList.find((c) => c.slug === slug);
+}
+
+export async function findProjectsByCity(citySlug: string) {
+  const projectList = await listProjects();
+  return projectList.filter((p) => p.citySlug === citySlug);
+}
+
+export async function findProject(citySlug: string, projectSlug: string) {
+  const projectList = await listProjects();
+  return projectList.find((p) => p.citySlug === citySlug && p.slug === projectSlug);
+}
+
+export async function findService(slug: string) {
+  const serviceList = await listServices();
+  return serviceList.find((s) => s.slug === slug);
+}
+
+export async function findBlog(slug: string) {
+  const blogList = await listBlogs();
+  return blogList.find((b) => b.slug === slug);
+}
+
+export async function findCareer(slug: string) {
+  const careerList = await listCareers();
+  return careerList.find((c) => c.slug === slug);
+}

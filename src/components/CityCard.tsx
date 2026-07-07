@@ -3,8 +3,8 @@ import type { City } from "@/lib/data";
 import { getProjectsByCity } from "@/lib/data";
 import { ArrowUpRight } from "lucide-react";
 
-export default function CityCard({ city }: { city: City }) {
-  const count = getProjectsByCity(city.slug).length;
+export default function CityCard({ city, projectCount }: { city: City; projectCount?: number }) {
+  const count = projectCount ?? getProjectsByCity(city.slug).length;
 
   return (
     <Link

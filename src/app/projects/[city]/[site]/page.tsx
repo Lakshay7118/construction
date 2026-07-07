@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
-import { projects, getProject, getCity, getProjectsByCity } from "@/lib/data";
+import { projects, findProject, findCity, findProjectsByCity } from "@/lib/data";
 import BeforeAfterSlider from "@/components/BeforeAfterSlider";
 import ProjectCard from "@/components/ProjectCard";
 import SectionHeading from "@/components/SectionHeading";
@@ -16,11 +16,14 @@ export default async function ProjectSitePage({
   params: Promise<{ city: string; site: string }>;
 }) {
   const { city: citySlug, site } = await params;
-  const project = getProject(citySlug, site);
-  const city = getCity(citySlug);
+  const [project, city, cityProjects] = await Promise.all([
+    findProject(citySlug, site),
+    findCity(citySlug),
+    findProjectsByCity(citySlug),
+  ]);
   if (!project || !city) notFound();
 
-  const related = getProjectsByCity(citySlug).filter((p) => p.slug !== project.slug).slice(0, 3);
+  const related = cityProjects.filter((p) => p.slug !== project.slug).slice(0, 3);
 
   return (
     <>

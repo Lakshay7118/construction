@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowUpRight, Star } from "lucide-react";
-import { cities, services, projects, testimonials, awards } from "@/lib/data";
+import { getPublicData } from "@/lib/data";
 import CityCard from "@/components/CityCard";
 import SectionHeading from "@/components/SectionHeading";
 
-export default function Home() {
+export default async function Home() {
+  const { cities, services, projects, testimonials, awards } = await getPublicData();
   const totalSqft = cities.reduce((sum, c) => sum + c.totalSqft, 0);
-  const featured = projects.find((p) => p.slug === "skyline-towers")!;
+  const featured = projects.find((p) => p.slug === "skyline-towers") ?? projects[0];
 
   return (
     <>
@@ -66,7 +67,7 @@ export default function Home() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {cities.map((city) => (
-            <CityCard key={city.slug} city={city} />
+            <CityCard key={city.slug} city={city} projectCount={projects.filter((p) => p.citySlug === city.slug).length} />
           ))}
         </div>
       </section>
@@ -105,7 +106,7 @@ export default function Home() {
 
       {/* FEATURED PROJECT */}
       <section className="mx-auto max-w-7xl px-5 sm:px-8 py-24">
-        <SectionHeading eyebrow="Featured Site" title="Skyline Towers, Mumbai" />
+        <SectionHeading eyebrow="Featured Site" title={featured.title} />
         <div className="mt-10 grid lg:grid-cols-2 gap-10 items-center">
           <div className="relative aspect-[4/3] tick-corners overflow-hidden">
             <img src={featured.heroImage} alt={featured.title} className="h-full w-full object-cover" />

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
-import { careers } from "@/lib/data";
+import { listCareers } from "@/lib/data";
 
 export const metadata = { title: "Careers | Kalpataru Constructions" };
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const careers = await listCareers();
   return (
     <>
       <section className="bg-charcoal text-concrete blueprint-grid py-20">

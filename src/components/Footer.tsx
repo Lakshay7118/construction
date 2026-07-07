@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { cities } from "@/lib/data";
+import { listCities } from "@/lib/data";
 import { MapPin, Mail, Phone } from "lucide-react";
 
-export default function Footer() {
+export default async function Footer() {
+  const cities = await listCities();
   return (
     <footer className="bg-blueprint text-concrete blueprint-grid-fine">
       <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16">

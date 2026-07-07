@@ -1,9 +1,10 @@
-import { cities } from "@/lib/data";
+import { listCities, listProjects } from "@/lib/data";
 import CityCard from "@/components/CityCard";
 
 export const metadata = { title: "Projects by City | Kalpataru Constructions" };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  const [cities, projects] = await Promise.all([listCities(), listProjects()]);
   return (
     <>
       <section className="bg-charcoal text-concrete blueprint-grid py-20">
@@ -21,7 +22,7 @@ export default function ProjectsPage() {
       <section className="mx-auto max-w-7xl px-5 sm:px-8 py-16">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {cities.map((city) => (
-            <CityCard key={city.slug} city={city} />
+            <CityCard key={city.slug} city={city} projectCount={projects.filter((p) => p.citySlug === city.slug).length} />
           ))}
         </div>
       </section>

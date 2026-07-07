@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 export default function InquiryForm({
   variant,
@@ -10,15 +11,36 @@ export default function InquiryForm({
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // Wired to /api/enquiries once the backend is connected.
-    setTimeout(() => {
-      setLoading(false);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+    const payload = {
+      name: String(form.get("name") ?? ""),
+      email: String(form.get("email") ?? ""),
+      phone: String(form.get("phone") ?? ""),
+      projectType: variant === "quote" ? String(form.get("projectType") ?? "") : "General enquiry",
+      city: variant === "quote" ? String(form.get("city") ?? "") : "Not specified",
+      budget: String(form.get("budget") ?? "—"),
+      message: String(form.get("message") ?? ""),
+      source: variant === "quote" ? "Quote Form" : "Contact Form",
+    };
+
+    try {
+      await apiFetch("/inquiries", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
       setSubmitted(true);
-    }, 600);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send your message right now.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -44,18 +66,21 @@ export default function InquiryForm({
       <Field label="Email address" name="email" type="email" required />
 
       {variant === "quote" && (
-        <div className="grid sm:grid-cols-2 gap-5">
-          <SelectField
-            label="Project type"
-            name="projectType"
-            options={["Residential", "Commercial", "Industrial", "Infrastructure"]}
-          />
-          <SelectField
-            label="City"
-            name="city"
-            options={["Delhi", "Mumbai", "Pune", "Jaipur", "Ahmedabad", "Other"]}
-          />
-        </div>
+        <>
+          <div className="grid sm:grid-cols-2 gap-5">
+            <SelectField
+              label="Project type"
+              name="projectType"
+              options={["Residential", "Commercial", "Industrial", "Infrastructure"]}
+            />
+            <SelectField
+              label="City"
+              name="city"
+              options={["Delhi", "Mumbai", "Pune", "Jaipur", "Ahmedabad", "Other"]}
+            />
+          </div>
+          <Field label="Budget" name="budget" placeholder="Approximate budget" />
+        </>
       )}
 
       <div>
@@ -75,6 +100,8 @@ export default function InquiryForm({
         />
       </div>
 
+      {error && <p className="text-sm text-safety-dim">{error}</p>}
+
       <button
         type="submit"
         disabled={loading}
@@ -91,11 +118,13 @@ function Field({
   name,
   type = "text",
   required,
+  placeholder,
 }: {
   label: string;
   name: string;
   type?: string;
   required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div>
@@ -104,6 +133,7 @@ function Field({
         type={type}
         name={name}
         required={required}
+        placeholder={placeholder}
         className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety transition-colors"
       />
     </div>

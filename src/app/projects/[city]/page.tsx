@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { cities, getCity, getProjectsByCity } from "@/lib/data";
+import { cities, findCity, findProjectsByCity } from "@/lib/data";
 import ProjectCard from "@/components/ProjectCard";
 
 export function generateStaticParams() {
@@ -8,10 +8,10 @@ export function generateStaticParams() {
 
 export default async function CityDetailPage({ params }: { params: Promise<{ city: string }> }) {
   const { city: citySlug } = await params;
-  const city = getCity(citySlug);
+  const city = await findCity(citySlug);
   if (!city) notFound();
 
-  const cityProjects = getProjectsByCity(citySlug);
+  const cityProjects = await findProjectsByCity(citySlug);
   const types = Array.from(new Set(cityProjects.map((p) => p.type)));
 
   return (

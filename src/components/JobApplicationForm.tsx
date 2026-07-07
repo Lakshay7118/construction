@@ -2,15 +2,39 @@
 
 import { useState } from "react";
 import { CheckCircle2, Upload } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
-export default function JobApplicationForm() {
+export default function JobApplicationForm({ careerSlug }: { careerSlug: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Wired to /api/careers/apply once the backend is connected.
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+
+    const form = new FormData(e.currentTarget);
+    const resume = form.get("resume") as File | null;
+
+    try {
+      await apiFetch(`/careers/${careerSlug}/apply`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: String(form.get("name") ?? ""),
+          email: String(form.get("email") ?? ""),
+          phone: String(form.get("phone") ?? ""),
+          resumeFileName: resume?.name || fileName || "Resume uploaded",
+          coverNote: String(form.get("coverNote") ?? ""),
+        }),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not submit your application right now.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -28,12 +52,16 @@ export default function JobApplicationForm() {
       <div className="grid sm:grid-cols-2 gap-5">
         <div>
           <label className="block text-sm font-medium text-charcoal/80 mb-1.5">Full name</label>
-          <input required className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety" />
+          <input name="name" required className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety" />
         </div>
         <div>
           <label className="block text-sm font-medium text-charcoal/80 mb-1.5">Email address</label>
-          <input type="email" required className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety" />
+          <input name="email" type="email" required className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety" />
         </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-charcoal/80 mb-1.5">Phone number</label>
+        <input name="phone" type="tel" required className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety" />
       </div>
       <div>
         <label className="block text-sm font-medium text-charcoal/80 mb-1.5">Resume</label>
@@ -41,18 +69,26 @@ export default function JobApplicationForm() {
           <Upload size={16} />
           {fileName || "Upload PDF or DOCX"}
           <input
+            name="resume"
             type="file"
             accept=".pdf,.doc,.docx"
+            required
             className="hidden"
             onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
           />
         </label>
       </div>
+      <div>
+        <label className="block text-sm font-medium text-charcoal/80 mb-1.5">Cover note</label>
+        <textarea name="coverNote" rows={4} className="w-full border border-charcoal/20 bg-transparent px-4 py-3 text-sm focus:outline-none focus:border-safety resize-none" />
+      </div>
+      {error && <p className="text-sm text-safety-dim">{error}</p>}
       <button
         type="submit"
+        disabled={loading}
         className="inline-flex items-center gap-2 bg-charcoal text-concrete px-8 py-3.5 text-sm font-medium hover:bg-safety transition-colors"
       >
-        Submit Application
+        {loading ? "Submitting..." : "Submit Application"}
       </button>
     </form>
   );
