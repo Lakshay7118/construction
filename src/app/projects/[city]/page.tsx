@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { cities, findCity, findProjectsByCity } from "@/lib/data";
-import ProjectCard from "@/components/ProjectCard";
+import ProjectTypeFilter from "@/components/ProjectTypeFilter";
 
 export function generateStaticParams() {
   return cities.map((c) => ({ city: c.slug }));
@@ -12,7 +12,6 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
   if (!city) notFound();
 
   const cityProjects = await findProjectsByCity(citySlug);
-  const types = Array.from(new Set(cityProjects.map((p) => p.type)));
 
   return (
     <>
@@ -31,21 +30,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ cit
       </section>
 
       <section className="mx-auto max-w-7xl px-5 sm:px-8 py-16">
-        {types.length > 1 && (
-          <div className="flex flex-wrap gap-2 mb-10">
-            <span className="px-4 py-2 text-xs font-mono tracking-wider bg-charcoal text-concrete">ALL</span>
-            {types.map((t) => (
-              <span key={t} className="px-4 py-2 text-xs font-mono tracking-wider border border-charcoal/20 text-charcoal/60">
-                {t.toUpperCase()}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {cityProjects.map((p) => (
-            <ProjectCard key={p.slug} project={p} />
-          ))}
-        </div>
+        <ProjectTypeFilter projects={cityProjects} />
       </section>
     </>
   );
